@@ -1,0 +1,36 @@
+# ---- Rust / Cargo ----
+/target/
+
+# rustfmt backups
+**/*.rs.bk
+
+# ---- Profiling / Coverage ----
+*.prof
+*.profraw
+*.profdata
+*.gcno
+*.gcda
+*.gcov
+coverage/
+lcov.info
+
+# ---- Editor / IDE ----
+.vscode/
+.idea/
+*.iml
+
+# ---- OS files ----
+.DS_Store
+Thumbs.db
+
+# ---- Environment files ----
+.env
+.env.*
+!.env.example
+
+# ---- Temporary files ----
+*.swp
+*.swo
+*~
+.#*
+*.tmp

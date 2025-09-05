@@ -1,0 +1,16 @@
+version: 1
+
+subgraphs:
+  - name: subgraph-1
+    routing_url: http://127.0.0.1:8082/graphql
+    subscription:
+      protocol: "ws"
+
+  - name: subgraph-2
+    routing_url: http://127.0.0.1:8083/graphql
+    subscription:
+      protocol: "ws"
+
+  - name: edg
+    schema:
+      file: edg.graphqls

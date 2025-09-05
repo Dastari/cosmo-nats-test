@@ -1,0 +1,27 @@
+directive @edfs__natsSubscribe(
+  subjects: [String!]!
+  providerId: String! = "default"
+  streamConfiguration: edfs__NatsStreamConfiguration
+) on FIELD_DEFINITION
+
+input edfs__NatsStreamConfiguration {
+  consumerInactiveThreshold: Int! = 30
+  consumerName: String!
+  streamName: String!
+}
+
+type Endpoint @key(fields: "id", resolvable: false) {
+  id: ID! @external
+}
+
+type Subscription {
+  endpointUpdated(id: ID!): Endpoint!
+    @edfs__natsSubscribe(
+      subjects: ["demo.endpoint.updated.{{ args.id }}"]
+      streamConfiguration: {
+        streamName: "demoStream"
+        consumerName: "demoConsumer"
+        consumerInactiveThreshold: 30
+      }
+    )
+}
