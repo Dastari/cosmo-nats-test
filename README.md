@@ -4,8 +4,8 @@ A complete local development environment for testing WunderGraph Cosmo Router wi
 
 ## Architecture
 
-- **Two Rust Subgraphs**: `jim` and `zorus` using async-graphql + axum
-- **WunderGraph Cosmo Router**: Federates subgraphs with WebSocket subscription support
+- **Two Rust Subgraphs**: `subgraph-1` and `subgraph-2` using async-graphql + axum
+- **WunderGraph Cosmo Router**: Federates subgraphs with WebSocket subscription passthrough
 - **Event-Driven Graph (EDG)**: NATS-powered subscriptions via EDFS
 - **NATS JetStream**: Message streaming for event-driven subscriptions
 
@@ -40,19 +40,43 @@ This starts all services:
 ## Endpoints
 
 - **Router**: http://127.0.0.1:8080/graphql (HTTP + WebSocket)
-- **Jim Subgraph**: http://127.0.0.1:8082/graphql
-- **Zorus Subgraph**: http://127.0.0.1:8083/graphql
+- **Subgraph-1**: http://127.0.0.1:8082/graphql (HTTP + WebSocket)
+- **Subgraph-2**: http://127.0.0.1:8083/graphql (HTTP + WebSocket)
 
 ## Testing WebSocket Subscriptions
 
-> **Note**: Native subgraph subscriptions are currently disabled in this basic implementation due to async-graphql-axum API compatibility issues with the latest versions. The subgraphs expose HTTP-only GraphQL endpoints for queries and mutations. WebSocket subscription support can be added by using the correct async-graphql-axum API once the compatibility issues are resolved.
+Native subgraph subscriptions are exposed and federated through the router via WebSocket passthrough. The composed schema will not list these native subscription fields; passthrough happens at runtime.
+
+Use a client that supports `graphql-transport-ws` (recommended) or `graphql-ws`.
+
+Quick test with websocat (install via your package manager):
+
+```bash
+# Connect to the router
+websocat -H="Sec-WebSocket-Protocol: graphql-transport-ws" ws://127.0.0.1:8080/graphql
+
+# Then send frames:
+{"type":"connection_init"}
+{"id":"1","type":"subscribe","payload":{"query":"subscription{ subgraph1OnChangeValue }"}}
+
+# In a separate terminal, trigger an update via HTTP:
+curl -sS -X POST http://127.0.0.1:8080/graphql \
+  -H 'content-type: application/json' \
+  -d '{"query":"mutation{ subgraph1IncrementValue(by:1) }"}'
+```
+
+Alternative subscription from subgraph-2:
+
+```json
+{"id":"1","type":"subscribe","payload":{"query":"subscription{ subgraph2OnChangeValue }"}}
+```
 
 ### Event-Driven Federation via NATS
 
 Start an EDFS subscription:
 
 ```json
-{"id":"3","type":"subscribe","payload":{"query":"subscription{ endpointUpdated(id:\"1\"){ id jimValue zorusCount } }"}}
+{"id":"3","type":"subscribe","payload":{"query":"subscription{ endpointUpdated(id:\"1\"){ id subgraph1Value subgraph2Count } }"}}
 ```
 
 Publish a test event:
@@ -68,69 +92,69 @@ Expected response: An Endpoint entity with data resolved from both subgraphs.
 ### Queries
 
 ```bash
-# Test jim
+# Test subgraph-1 query
 curl -sS -X POST http://127.0.0.1:8080/graphql \
   -H 'content-type: application/json' \
-  -d '{"query":"{ jimPing }"}'
+  -d '{"query":"{ subgraph1QueryValue }"}'
 
-# Test zorus  
+# Test subgraph-2 query  
 curl -sS -X POST http://127.0.0.1:8080/graphql \
   -H 'content-type: application/json' \
-  -d '{"query":"{ zorusPing }"}'
+  -d '{"query":"{ subgraph2QueryValue }"}'
 
 # Test federated entity
 curl -sS -X POST http://127.0.0.1:8080/graphql \
   -H 'content-type: application/json' \
-  -d '{"query":"{ endpoint(id:\"1\"){ id jimValue zorusCount } }"}'
+  -d '{"query":"{ endpoint(id:\"1\"){ id subgraph1Value subgraph2Count } }"}'
 ```
 
 ### Mutations
 
 ```bash
-# Jim mutation
+# subgraph-1 mutation
 curl -sS -X POST http://127.0.0.1:8080/graphql \
   -H 'content-type: application/json' \
-  -d '{"query":"mutation{ jimIncrement(by:5) }"}'
+  -d '{"query":"mutation{ subgraph1IncrementValue(by:5) }"}'
 
-# Zorus mutation
+# subgraph-2 mutation
 curl -sS -X POST http://127.0.0.1:8080/graphql \
   -H 'content-type: application/json' \
-  -d '{"query":"mutation{ zorusIncrement(by:2) }"}'
+  -d '{"query":"mutation{ subgraph2IncrementValue(by:2) }"}'
 ```
 
 ## GraphQL Schema
 
-### Jim Subgraph
+### Subgraph-1
 
 ```graphql
 type Query {
-  jimPing: String!
+  subgraph1QueryValue: Int!
 }
 
 type Mutation {
-  jimIncrement(by: Int): Int!
+  subgraph1IncrementValue(by: Int): Int!
 }
 
 type Endpoint @key(fields: "id") {
   id: ID!
-  jimValue: String
+  subgraph1Value: String
 }
 ```
 
-### Zorus Subgraph
+### Subgraph-2
 
 ```graphql
 type Query {
-  zorusPing: String!
+  subgraph2QueryValue: Int!
 }
 
 type Mutation {
-  zorusIncrement(by: Int): Int!
+  subgraph2IncrementValue(by: Int): Int!
 }
 
 type Endpoint @key(fields: "id") {
   id: ID!
-  zorusCount: Int
+  subgraph2Count: Int
 }
 ```
 
@@ -154,8 +178,8 @@ just dev              # Start all services
 just compose          # Compose federated graph
 just nats             # Start NATS server only
 just nats-setup       # Setup JetStream streams
-just jim              # Start jim subgraph only
-just zorus            # Start zorus subgraph only  
+just subgraph-1       # Start subgraph-1 only
+just subgraph-2       # Start subgraph-2 only  
 just router           # Start router only
 just publish <id> <payload>  # Publish NATS event
 just clean            # Stop all services and clean up
@@ -195,7 +219,7 @@ If ports are in use, update these files:
 ## Project Structure
 
 ```
-cosmo-rust-edfs/
+cosmo-nats-test/
 ├── README.md
 ├── justfile
 ├── Cargo.toml
@@ -209,10 +233,10 @@ cosmo-rust-edfs/
 │   ├── execution-config.json  # Generated execution config
 │   └── edg.graphqls      # Event-Driven Graph schema
 └── subgraphs/
-    ├── jim/
+    ├── subgraph-1/
     │   ├── Cargo.toml
     │   └── src/main.rs
-    └── zorus/
+    └── subgraph-2/
         ├── Cargo.toml
         └── src/main.rs
 ```
@@ -223,12 +247,13 @@ cosmo-rust-edfs/
 - NATS data is stored in `./nats-data/` (gitignored)
 - All services log to stdout for easy debugging
 - Use `just clean` to reset the environment completely
+- Ensure NATS is running before starting the router; otherwise, the router will fail to start
 
 ## Testing Checklist
 
 ✅ HTTP queries work via router  
 ✅ HTTP mutations work via router  
-⚠️ Native WebSocket subscriptions (disabled in current implementation)  
+✅ Native WebSocket subscriptions (passthrough via router)  
 ✅ EDFS subscriptions receive NATS events  
 ✅ Federated entity resolution works across subgraphs  
 ✅ Router playground accessible in dev mode  
@@ -237,10 +262,9 @@ cosmo-rust-edfs/
 
 This is a **working basic implementation** with the following status:
 
-- ✅ **Complete**: Rust subgraphs with federation, queries, and mutations
+- ✅ **Complete**: Rust subgraphs with federation, queries, mutations, and native WS subscriptions on `/graphql`
 - ✅ **Complete**: WunderGraph Cosmo Router setup and configuration  
 - ✅ **Complete**: NATS JetStream with Event-Driven Federation
 - ✅ **Complete**: Full orchestration via justfile
-- ⚠️ **Partial**: Native WebSocket subscriptions (API compatibility issues with async-graphql-axum 7.0 + axum 0.8)
 
-The core federation and EDFS functionality works perfectly. Native subgraph subscriptions can be added once the async-graphql-axum WebSocket API is properly integrated.
+Note: Native subscription fields are not shown in the composed schema; Cosmo Router forwards WebSocket subscription traffic in passthrough mode.
