@@ -10,17 +10,17 @@ input edfs__NatsStreamConfiguration {
   streamName: String!
 }
 
-type Endpoint @key(fields: "id", resolvable: false) {
+type Subgraph @key(fields: "id", resolvable: false) {
   id: ID! @external
 }
 
 type Subscription {
-  endpointUpdated(id: ID!): Endpoint!
+  subgraphValueUpdated(id: ID!): Subgraph!
     @edfs__natsSubscribe(
-      subjects: ["demo.endpoint.updated.{{ args.id }}"]
+      subjects: ["gema.subgraph{{ args.id }}.value.updated"]
       streamConfiguration: {
         streamName: "demoStream"
-        consumerName: "demoConsumer"
+        consumerName: "edg_subgraphs"
         consumerInactiveThreshold: 30
       }
     )

@@ -1,0 +1,15 @@
+[package]
+name = "subgraph"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1"
+tokio = { workspace = true }
+async-stream = "0.3"
+async-graphql = { workspace = true, features = ["dynamic-schema"] }
+async-graphql-axum = { workspace = true }
+axum = { workspace = true }
+tower-http = { workspace = true }
+async-nats = "0.41"
+clap = { version = "4.5", features = ["derive", "env"] }

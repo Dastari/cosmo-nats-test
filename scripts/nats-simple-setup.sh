@@ -14,7 +14,7 @@ echo "Creating/updating JetStream stream 'demoStream'..."
 cat > /tmp/stream-config.json << 'EOF'
 {
   "name": "demoStream",
-  "subjects": ["demo.endpoint.updated.*"],
+  "subjects": ["gema.subgraph*.value.updated"],
   "storage": "file",
   "retention": "limits",
   "max_msgs": -1,
@@ -23,17 +23,17 @@ cat > /tmp/stream-config.json << 'EOF'
   "max_msg_size": -1,
   "discard": "old",
   "ack": false,
-  "replicas": 1
+  "num_replicas": 1
 }
 EOF
 
-nats -s "$NATS_URL" stream add demoStream --config /tmp/stream-config.json || echo "Stream already exists"
+nats -s "$NATS_URL" stream add demoStream --config /tmp/stream-config.json || nats -s "$NATS_URL" stream update demoStream --config /tmp/stream-config.json
 
-echo "Creating/updating durable consumer 'demoConsumer'..."
+echo "Creating/updating durable consumer 'edg_subgraphs'..."
 cat > /tmp/consumer-config.json << 'EOF'
 {
-  "durable_name": "demoConsumer",
-  "filter_subject": "demo.endpoint.updated.*",
+  "durable_name": "edg_subgraphs",
+  "filter_subject": "gema.subgraph*.value.updated",
   "ack_policy": "none",
   "deliver_policy": "all",
   "replay_policy": "instant",
@@ -41,9 +41,8 @@ cat > /tmp/consumer-config.json << 'EOF'
 }
 EOF
 
-nats -s "$NATS_URL" consumer add demoStream demoConsumer --config /tmp/consumer-config.json || echo "Consumer already exists"
+nats -s "$NATS_URL" consumer add demoStream edg_subgraphs --config /tmp/consumer-config.json || nats -s "$NATS_URL" consumer update demoStream edg_subgraphs --config /tmp/consumer-config.json
 
-# Cleanup temp files
 rm -f /tmp/stream-config.json /tmp/consumer-config.json
 
 echo "✅ NATS JetStream setup complete!"

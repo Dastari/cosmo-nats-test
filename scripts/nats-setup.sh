@@ -19,6 +19,7 @@ echo | nats -s "$NATS_URL" stream add demoStream \
     --max-bytes=-1 \
     --max-age=24h \
     --max-msg-size=-1 \
+    --num-replicas=1 \
     --discard old \
     --no-ack \
     --replicas 1 || echo "Stream might already exist"
