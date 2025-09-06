@@ -1,3 +1,11 @@
+directive @edfs__natsRequest(
+  subject: String!
+  providerId: String! = "default"
+) on FIELD_DEFINITION
+directive @edfs__natsPublish(
+  subject: String!
+  providerId: String! = "default"
+) on FIELD_DEFINITION
 directive @edfs__natsSubscribe(
   subjects: [String!]!
   providerId: String! = "default"
@@ -15,9 +23,27 @@ type Subgraph @key(fields: "id", resolvable: false) {
 }
 
 type Subscription {
-  subgraphValueUpdated(id: ID!): Subgraph!
+  FameOnValueChange: Subgraph!
     @edfs__natsSubscribe(
-      subjects: ["gema.subgraph{{ args.id }}.value.updated"]
+      subjects: ["gema.fame.value.updated"]
+      streamConfiguration: {
+        streamName: "demoStream"
+        consumerName: "edg_subgraphs"
+        consumerInactiveThreshold: 30
+      }
+    )
+  JimOnValueChange: Subgraph!
+    @edfs__natsSubscribe(
+      subjects: ["gema.jim.value.updated"]
+      streamConfiguration: {
+        streamName: "demoStream"
+        consumerName: "edg_subgraphs"
+        consumerInactiveThreshold: 30
+      }
+    )
+  ZorusOnValueChange: Subgraph!
+    @edfs__natsSubscribe(
+      subjects: ["gema.zorus.value.updated"]
       streamConfiguration: {
         streamName: "demoStream"
         consumerName: "edg_subgraphs"

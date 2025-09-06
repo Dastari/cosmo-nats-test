@@ -1088,18 +1088,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "34080505efa8e45a4b816c349525ebe327ceaa8559756f0356cba97ef3bf7432"
 
 [[package]]
-name = "manager"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-graphql",
- "async-graphql-axum",
- "axum",
- "tokio",
- "tower-http",
-]
-
-[[package]]
 name = "matchit"
 version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1833,7 +1821,37 @@ dependencies = [
 ]
 
 [[package]]
-name = "subgraph"
+name = "subgraph-fame"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-graphql",
+ "async-graphql-axum",
+ "async-nats",
+ "async-stream",
+ "axum",
+ "clap",
+ "tokio",
+ "tower-http",
+]
+
+[[package]]
+name = "subgraph-jim"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-graphql",
+ "async-graphql-axum",
+ "async-nats",
+ "async-stream",
+ "axum",
+ "clap",
+ "tokio",
+ "tower-http",
+]
+
+[[package]]
+name = "subgraph-zorus"
 version = "0.1.0"
 dependencies = [
  "anyhow",

@@ -1,31 +1,21 @@
 version: 1
 
 subgraphs:
-  - name: subgraph-manager
-    routing_url: http://127.0.0.1:9000/graphql
+  # - name: manager
+  #   routing_url: http://127.0.0.1:9000/graphql
 
-  - name: subgraph-1
+  - name: fame
     routing_url: http://127.0.0.1:9001/graphql
     subscription:
       protocol: "ws"
 
-  - name: subgraph-2
+  - name: jim
     routing_url: http://127.0.0.1:9002/graphql
     subscription:
       protocol: "ws"
 
-  - name: subgraph-3
+  - name: zorus
     routing_url: http://127.0.0.1:9003/graphql
-    subscription:
-      protocol: "ws"
-
-  - name: subgraph-4
-    routing_url: http://127.0.0.1:9004/graphql
-    subscription:
-      protocol: "ws"
-
-  - name: subgraph-5
-    routing_url: http://127.0.0.1:9005/graphql
     subscription:
       protocol: "ws"
 

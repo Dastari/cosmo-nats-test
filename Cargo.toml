@@ -1,5 +1,5 @@
 [workspace]
-members = ["subgraph","manager"]
+members = ["subgraph-jim","subgraph-zorus","subgraph-fame"]
 resolver = "2"
 
 [workspace.dependencies]
