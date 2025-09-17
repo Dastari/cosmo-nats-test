@@ -9,16 +9,6 @@ subgraphs:
     subscription:
       protocol: "ws"
 
-  - name: jim
-    routing_url: http://127.0.0.1:9002/graphql
-    subscription:
-      protocol: "ws"
-
-  - name: zorus
-    routing_url: http://127.0.0.1:9003/graphql
-    subscription:
-      protocol: "ws"
-
   - name: edg
     schema:
       file: edg.graphqls

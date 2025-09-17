@@ -14,7 +14,7 @@ echo "Creating/updating JetStream stream 'demoStream'..."
 cat > /tmp/stream-config.json << 'EOF'
 {
   "name": "demoStream",
-  "subjects": ["gema.fame.value.updated","gema.jim.value.updated","gema.zorus.value.updated"],
+  "subjects": ["gema.>"],
   "storage": "file",
   "retention": "limits",
   "max_msgs": -1,
@@ -33,9 +33,9 @@ echo "Creating/updating durable consumer 'edg_subgraphs'..."
 cat > /tmp/consumer-config.json << 'EOF'
 {
   "durable_name": "edg_subgraphs",
-  "filter_subject": "gema.fame.value.updated,gema.jim.value.updated,gema.zorus.value.updated",
+  "filter_subject": "gema.>",
   "ack_policy": "none",
-  "deliver_policy": "all",
+  "deliver_policy": "all", 
   "replay_policy": "instant",
   "inactive_threshold": 30000000000
 }
